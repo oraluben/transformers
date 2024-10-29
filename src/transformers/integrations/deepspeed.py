@@ -213,6 +213,11 @@ class HfTrainerDeepSpeedConfig(HfDeepSpeedConfig):
         Now we can complete the configuration process.
         """
         # zero
+        if args.torch_compile:
+            self.fill_only(
+                "zero_optimization.stage3_max_live_parameters",
+                2000000000,
+            )
 
         # deal with config keys that use `auto` value and rely on model's hidden_size
         hidden_size_based_keys = [
@@ -246,7 +251,7 @@ class HfTrainerDeepSpeedConfig(HfDeepSpeedConfig):
                 # automatically assign the optimal config values based on model config
                 self.fill_only(
                     "zero_optimization.stage3_prefetch_bucket_size",
-                    int(0.9 * hidden_size * hidden_size),
+                    int((0.9 if not args.torch_compile else 6) * hidden_size * hidden_size),
                 )
                 self.fill_only(
                     "zero_optimization.stage3_param_persistence_threshold",
